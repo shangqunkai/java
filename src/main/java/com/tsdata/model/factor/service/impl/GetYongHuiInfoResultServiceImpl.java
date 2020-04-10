@@ -39,7 +39,7 @@ public class GetYongHuiInfoResultServiceImpl implements GetInterfaceInfoService{
 	//private static String apiName= "SandboxstrategyApi";
 	//信息验证策略编号
 	@Value("${BR.conf_id}")
-	private String conf_id= "";
+	private String conf_id;
 	/**
 	 * 甬汇接口
 	 * @param param

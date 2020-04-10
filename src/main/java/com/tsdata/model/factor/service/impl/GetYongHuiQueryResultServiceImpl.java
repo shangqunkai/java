@@ -5,10 +5,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.tsdata.model.factor.common.CommonUtil;
+import com.tsdata.model.factor.common.HttpClientUtils;
+import com.tsdata.model.factor.common.HttpConnectionManager4;
+import com.tsdata.model.factor.common.PropertiesUtil;
 import com.tsdata.model.factor.service.GetInterfaceInfoService;
 
 import net.sf.json.JSONObject;
@@ -19,7 +24,8 @@ import net.sf.json.JSONObject;
  */
 @Service("BRQueryHandler")
 public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService{
-	
+	public static Logger logger = LoggerFactory.getLogger(GetHDBlackResultServiceImpl.class);
+
 	@Value("${BR.userName}")
 	private String userName;
 	
@@ -39,7 +45,7 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
 	//private static String apiName= "SandboxstrategyApi";
 	//贷前策略编号
 	@Value("${BR.strategy_id}")
-	private String strategy_id= "";
+	private String strategy_id;
 	/**
 	 * 甬汇接口
 	 * @param param
@@ -48,7 +54,7 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
 	 */
 	@Override
 	public JSONObject getResult(JSONObject param){
-
+		logger.info(">>>>>百融贷前策略接口>>>>>>");
 		JSONObject jsonData = new JSONObject();
         jsonData.put("tokenid",generateToken());
         jsonData.put("apiCode",apiCode);
@@ -70,8 +76,8 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
 		//TODO 贷前的策略编号(请查看策略配置表)
         reqData.put("strategy_id",strategy_id);
         jsonData.put("reqData",reqData);
-        JSONObject result = CommonUtil.httpsRequest(hxQueryApiUrl, "POST", jsonData.toString());
-        param.put("", result);
+        String result = HttpClientUtils.doPostForm(hxQueryApiUrl, jsonData);
+        param.put("BRQuery", result);
 	
 		return param;
 	}
@@ -101,11 +107,9 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
         paramMap.put("userName", userName);
         paramMap.put("password", pwd);
         paramMap.put("apiCode", apiCode);
-        JSONObject result =CommonUtil.httpsRequest(loginApiUrl, "POST", paramMap.toString());
-        System.out.println(result);
-        if (null!= result) {
-        	login_res_str = result.toString();
-		}
+        System.out.println(userName+">>"+pwd+">>"+apiCode+">>"+loginName);
+        login_res_str = HttpConnectionManager4.post(PropertiesUtil.containsKey(loginName) ? PropertiesUtil.getStringValue(loginName) : loginName, paramMap);
+        System.out.println(login_res_str);
         return login_res_str;
       }
 

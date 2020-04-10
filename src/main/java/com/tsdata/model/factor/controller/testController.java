@@ -19,7 +19,7 @@ public class testController {
 	
 	@RequestMapping(path = "/yonghui" , name = "测试")
 	@ResponseBody
-	public String getYongHuiResult(){
+	public JSONObject getYongHuiResult(){
 		JSONObject param = new JSONObject();
 		param.put("name", "尚群凯");
 		param.put("id_no", "412822199203056612");
@@ -49,12 +49,25 @@ public class testController {
 		String bean5 = "ZQCheckHandler";
 		String bean6 = "AFuCreditHandler";
 		String bean7 = "AFuFraudHandler";
-		String bean8 = "AFuDecisionHandler";
+		String bean8 = "AFuDecisionHandler"; 
 		
-		GetInterfaceInfoService beanService = myBeanFactory.getBeanServiceByname(bean8);
-		JSONObject params = beanService.getResult(param);
+		String bean9 = "HDBlackHandler";
+		String bean10 = "HDCreditHandler";
 		
+		//String bean11 = "BRInfoVerifyHandler";
+		String bean12 = "BRQueryHandler";
+		GetInterfaceInfoService beanService1 = myBeanFactory.getBeanServiceByname(bean9);
+		JSONObject params1 = beanService1.getResult(param);
+		
+		GetInterfaceInfoService beanService2 = myBeanFactory.getBeanServiceByname(bean10);
+		JSONObject params2 = beanService2.getResult(params1);
+		
+		/*GetInterfaceInfoService beanService3 = myBeanFactory.getBeanServiceByname(bean11);
+		JSONObject params3 = beanService3.getResult(params2);*/
+		
+		GetInterfaceInfoService beanService4 = myBeanFactory.getBeanServiceByname(bean12);
+		JSONObject params4 = beanService4.getResult(params2);
 		System.out.println("");
-		return "";
+		return params4;
 	}
 }
