@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.bfd.facade.MerchantServer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import net.sf.json.JSONObject;
  */
 @Service("BRQueryHandler")
 public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService{
-	public static Logger logger = LoggerFactory.getLogger(GetHDBlackResultServiceImpl.class);
+	public static Logger logger = LoggerFactory.getLogger(GetYongHuiQueryResultServiceImpl.class);
 
 	@Value("${BR.userName}")
 	private String userName;
@@ -41,11 +42,14 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
 	//贷前策略接口地址
 	@Value("${BR.hxQueryApiUrl}")
 	private String hxQueryApiUrl;
-	
-	//private static String apiName= "SandboxstrategyApi";
+    @Value("${BR.apiName}")
+    private String apiName;
+
 	//贷前策略编号
 	@Value("${BR.strategy_id}")
 	private String strategy_id;
+    private static MerchantServer ms = new MerchantServer();
+    String tokenId="";
 	/**
 	 * 甬汇接口
 	 * @param param
@@ -58,12 +62,12 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
 		JSONObject jsonData = new JSONObject();
         jsonData.put("tokenid",generateToken());
         jsonData.put("apiCode",apiCode);
-       
+        jsonData.put("apiName",apiName);
 		JSONObject reqData = new JSONObject();
 		reqData.put("id",param.getString("id_no"));
         reqData.put("cell",param.getString("mobile"));
         reqData.put("name",param.getString("name"));
-        
+
         String md = "";
         String checkCode = "";
 		try {
@@ -76,20 +80,21 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
 		//TODO 贷前的策略编号(请查看策略配置表)
         reqData.put("strategy_id",strategy_id);
         jsonData.put("reqData",reqData);
-        String result = HttpClientUtils.doPostForm(hxQueryApiUrl, jsonData);
+       // String result = HttpClientUtils.doPostForm(hxQueryApiUrl, jsonData);
+        String result = getBrData(jsonData.toString());
         param.put("BRQuery", result);
-	
+        logger.info("百融返回结果，{}",result);
 		return param;
 	}
 
     public String generateToken(){
-        String token="";
+
         try{
             String login_res_str = login(userName,password,loginApiUrl,apiCode);
             if(StringUtils.isNotBlank(login_res_str)){
                 JSONObject loginJson = JSONObject.fromObject(login_res_str);
                 if(loginJson.containsKey("tokenid")){
-                    token = loginJson.getString("tokenid");
+                    tokenId = loginJson.getString("tokenid");
                 }else {
                     System.out.println("返回结果异常，无token!结果为:"+login_res_str);
                 }
@@ -97,7 +102,7 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
         }catch (Exception e){
             e.printStackTrace();
         }
-        return token;
+        return tokenId;
     }
 	
     public String login(String userName, String pwd, String loginName, String apiCode) throws Exception {
@@ -108,10 +113,30 @@ public class GetYongHuiQueryResultServiceImpl implements GetInterfaceInfoService
         paramMap.put("password", pwd);
         paramMap.put("apiCode", apiCode);
         System.out.println(userName+">>"+pwd+">>"+apiCode+">>"+loginName);
-        login_res_str = HttpConnectionManager4.post(PropertiesUtil.containsKey(loginName) ? PropertiesUtil.getStringValue(loginName) : loginName, paramMap);
+       // login_res_str = HttpConnectionManager4.post(PropertiesUtil.containsKey(loginName) ? PropertiesUtil.getStringValue(loginName) : loginName, paramMap);
+        login_res_str = ms.login(userName,pwd,loginName,apiCode);
         System.out.println(login_res_str);
         return login_res_str;
       }
 
-    
+    public  String getBrData(String jsonStr){
+        String res="";
+        try {
+            res = ms.getApiData(jsonStr,apiCode);
+            if(StringUtils.isNotBlank(res)){
+                JSONObject json = JSONObject.fromObject(res);
+                if(json.containsKey("code")&&json.getString("code").equals("100007")){
+                    tokenId = null;
+                    JSONObject jsonData = JSONObject.fromObject(jsonStr);
+                    jsonData.put("tokenid",generateToken());
+                    res = ms.getApiData(jsonData.toString(),apiCode);
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+
 }
