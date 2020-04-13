@@ -18,6 +18,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -146,12 +147,20 @@ public class CommonUtil {
             if (entity != null) {
                 InputStream instream = entity.getContent();
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                // 将输入流解析为Document
-                Document document = builder.parse(instream);//用输入流实例化Document
-                
-                Element rootElement = document.getDocumentElement();
-                result = JSONObject.fromObject(rootElement.getNodeValue());
+                DocumentBuilder builder;
+				try {
+					builder = factory.newDocumentBuilder();
+					  // 将输入流解析为Document
+	                Document document = builder.parse(instream);//用输入流实例化Document
+	                
+	                Element rootElement = document.getDocumentElement();
+	                System.out.println(rootElement.getFirstChild().getNodeValue());
+	                result = JSONObject.fromObject(rootElement.getFirstChild().getNodeValue());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+              
             }
         } catch (IOException e) {
             System.out.print(e.getMessage());
