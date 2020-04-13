@@ -1,10 +1,13 @@
 package com.tsdata.model.factor.service.impl;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.tsdata.model.factor.common.CommonUtil;
 import com.tsdata.model.factor.common.HttpClientUtils;
 import com.tsdata.model.factor.service.GetInterfaceInfoService;
 
@@ -39,17 +42,21 @@ public class GetHDBlackResultServiceImpl implements GetInterfaceInfoService{
 		JSONObject reqData = new JSONObject();
 		reqData.put("ACCESS_TOKEN", token);
 		reqData.put("Phone", mobile);
-		String result = HttpClientUtils.doPostJson(blackUrl, reqData);
+		JSONObject result = CommonUtil.doGet(blackUrl, reqData);
 		param.put("HDBlack", result);
 		return param;
 	}
 
 	 public String getToken(){
+		String result = null;
 		JSONObject reqData = new JSONObject();
 		reqData.put("AppID", AppID);
 		reqData.put("AppSecret", AppSecret);
 		reqData.put("Key", Key);
-		String result = HttpClientUtils.doPostJson(tokenUrl, reqData);
+		JSONObject resultMap = CommonUtil.doGet(tokenUrl, reqData);
+		if (null != resultMap&&resultMap.has("access_token")&&resultMap.getString("access_token")!=null) {
+			result = resultMap.getString("access_token");
+		}
 		return result;
 	 }
 	
